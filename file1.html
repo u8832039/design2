@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaterialDesignInXAML 設計師 & 工程師使用手冊 — Allring Edition v1</title>
+<style>
+/* ============================================
+   CSS CUSTOM PROPERTIES — 品牌色連動核心
+   ============================================ */
+:root {
+  --brand-primary: #016194;
+  --brand-secondary: #F48001;
+  --brand-primary-light: #E7F0F5;
+  --brand-primary-dark: #004F79;
+  --brand-secondary-light: #FEF3E7;
+  --brand-secondary-dark: #C76800;
+
+  --bg-body: #F5F7FA;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-code: #F6F8FA;
+  --bg-header: var(--brand-primary);
+
+  --text-primary: #1A1A2E;
+  --text-secondary: #555770;
+  --text-tertiary: #8E8EA0;
+  --text-inverse: #FFFFFF;
+  --text-code: #D63384;
+
+  --border-color: #E2E8F0;
+  --border-radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+
+  --sidebar-width: 280px;
+  --header-height: 64px;
+  --transition: 0.3s ease;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --bg-body: #0F0F1A;
+  --bg-card: #1A1A2E;
+  --bg-sidebar: #16162A;
+  --bg-code: #1E1E3A;
+  --text-primary: #E8E8F0;
+  --text-secondary: #A0A0B8;
+  --text-tertiary: #6E6E88;
+  --text-code: #FF79C6;
+  --border-color: #2A2A40;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  background: var(--bg-body);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 15px;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--header-height);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: background var(--transition);
+}
+.header-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.header-title .badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 12px;
+  background: rgba(255,255,255,0.2); font-weight: 500;
+}
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-date { font-size: 12px; opacity: 0.8; }
+
+/* Search */
+.search-box {
+  position: relative; width: 240px;
+}
+.search-box input {
+  width: 100%; padding: 6px 12px 6px 32px; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px; background: rgba(255,255,255,0.15); color: #fff;
+  font-size: 13px; outline: none; transition: all var(--transition);
+}
+.search-box input::placeholder { color: rgba(255,255,255,0.6); }
+.search-box input:focus { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+.search-box svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); opacity: 0.7; }
+
+/* Dark mode toggle */
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,0.15); color: #fff; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition);
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.3); }
+
+/* Sidebar toggle */
+.sidebar-toggle {
+  display: none; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,0.15); color: #fff; font-size: 20px;
+  align-items: center; justify-content: center;
+}
+@media (max-width: 900px) { .sidebar-toggle { display: flex; } }
+
+/* ============================================
+   BRAND COLOR PANEL
+   ============================================ */
+.brand-panel {
+  position: fixed; top: var(--header-height); left: 0; right: 0; z-index: 900;
+  background: var(--bg-card); border-bottom: 1px solid var(--border-color);
+  padding: 12px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition), border-color var(--transition);
+}
+.brand-panel-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+.brand-panel-group { display: flex; align-items: center; gap: 8px; }
+.brand-panel-group label { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+.color-input-wrap {
+  display: flex; align-items: center; gap: 4px;
+  border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 8px;
+  background: var(--bg-card);
+}
+.color-input-wrap input[type="color"] {
+  width: 24px; height: 24px; border: none; padding: 0; cursor: pointer;
+  background: transparent; border-radius: 4px;
+}
+.color-input-wrap input[type="text"] {
+  width: 72px; border: none; font-size: 12px; font-family: monospace;
+  background: transparent; color: var(--text-primary); outline: none;
+}
+.brand-panel .btn-save {
+  padding: 4px 16px; border-radius: 6px; border: none; cursor: pointer;
+  background: var(--brand-primary); color: #fff; font-size: 12px; font-weight: 600;
+  transition: opacity var(--transition);
+}
+.brand-panel .btn-save:hover { opacity: 0.85; }
+.brand-panel .btn-reset {
+  padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border-color);
+  cursor: pointer; background: transparent; color: var(--text-secondary);
+  font-size: 12px; transition: all var(--transition);
+}
+.brand-panel .btn-reset:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+  position: fixed; top: calc(var(--header-height) + 52px); left: 0; bottom: 0;
+  width: var(--sidebar-width); background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto; padding: 16px 0; z-index: 800;
+  transition: transform var(--transition), background var(--transition), border-color var(--transition);
+}
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); box-shadow: var(--shadow-lg); }
+  .sidebar.open { transform: translateX(0); }
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+.nav-section { padding: 8px 16px; font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
+.nav-item {
+  display: block; padding: 8px 16px 8px 24px; font-size: 13px; color: var(--text-secondary);
+  text-decoration: none; border-left: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+.nav-item:hover { background: var(--brand-primary-light); color: var(--brand-primary); }
+.nav-item.active { border-left-color: var(--brand-primary); color: var(--brand-primary); font-weight: 600; background: var(--brand-primary-light); }
+[data-theme="dark"] .nav-item:hover { background: rgba(1,97,148,0.15); }
+[data-theme="dark"] .nav-item.active { background: rgba(1,97,148,0.2); }
+
+.nav-sub { padding-left: 40px; font-size: 12px; }
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main {
+  margin-left: var(--sidebar-width); margin-top: calc(var(--header-height) + 52px);
+  padding: 32px 40px 80px;
+  max-width: 960px;
+}
+@media (max-width: 900px) { .main { margin-left: 0; padding: 24px 16px 80px; } }
+
+/* Reading progress */
+.progress-bar {
+  position: fixed; top: var(--header-height); left: 0; right: 0; height: 3px;
+  z-index: 950; background: transparent;
+}
+.progress-bar-fill {
+  height: 100%; width: 0%; background: var(--brand-secondary);
+  transition: width 0.1s linear;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+h2 {
+  font-size: 24px; font-weight: 700; margin: 48px 0 16px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand-primary); color: var(--text-primary);
+}
+h3 { font-size: 18px; font-weight: 600; margin: 32px 0 12px; color: var(--text-primary); }
+h4 { font-size: 15px; font-weight: 600; margin: 24px 0 8px; color: var(--text-secondary); }
+p { margin-bottom: 12px; color: var(--text-secondary); }
+.subtitle { font-size: 16px; color: var(--text-tertiary); margin-bottom: 32px; }
+
+/* ============================================
+   COMPONENTS
+   ============================================ */
+/* Card */
+.card {
+  background: var(--bg-card); border-radius: var(--border-radius);
+  border: 1px solid var(--border-color); padding: 24px; margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition), border-color var(--transition);
+}
+.card-header { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+th {
+  text-align: left; padding: 10px 12px; background: var(--brand-primary);
+  color: #fff; font-weight: 600; font-size: 12px;
+}
+th:first-child { border-radius: 6px 0 0 0; }
+th:last-child { border-radius: 0 6px 0 0; }
+td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+tr:hover td { background: var(--brand-primary-light); }
+[data-theme="dark"] tr:hover td { background: rgba(1,97,148,0.1); }
+
+/* Code block */
+.code-block {
+  position: relative; background: var(--bg-code); border: 1px solid var(--border-color);
+  border-radius: var(--border-radius); padding: 16px; margin: 12px 0;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px; line-height: 1.6; overflow-x: auto;
+  transition: background var(--transition), border-color var(--transition);
+}
+.code-block .copy-btn {
+  position: absolute; top: 8px; right: 8px; padding: 4px 10px;
+  border-radius: 4px; border: 1px solid var(--border-color); cursor: pointer;
+  background: var(--bg-card); color: var(--text-tertiary); font-size: 11px;
+  transition: all 0.15s ease; opacity: 0;
+}
+.code-block:hover .copy-btn { opacity: 1; }
+.code-block .copy-btn:hover { color: var(--brand-primary); border-color: var(--brand-primary); }
+.code-lang {
+  position: absolute; top: 8px; left: 12px; font-size: 10px;
+  color: var(--text-tertiary); font-weight: 600; text-transform: uppercase;
+}
+code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.9em; }
+p code, li code, td code {
+  background: var(--bg-code); padding: 1px 6px; border-radius: 4px;
+  color: var(--text-code); border: 1px solid var(--border-color);
+}
+
+/* Color swatch */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin: 16px 0; }
+.color-swatch {
+  border-radius: var(--border-radius); overflow: hidden; border: 1px solid var(--border-color);
+  cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.color-swatch:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.color-swatch-block { height: 56px; display: flex; align-items: flex-end; padding: 6px 8px; }
+.color-swatch-block span { font-size: 10px; font-weight: 600; }
+.color-swatch-info { padding: 8px; background: var(--bg-card); }
+.color-swatch-name { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+.color-swatch-hex { font-size: 10px; font-family: monospace; color: var(--text-tertiary); }
+
+/* Tag / Badge */
+.tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+}
+.tag-primary { background: var(--brand-primary-light); color: var(--brand-primary); }
+.tag-secondary { background: var(--brand-secondary-light); color: var(--brand-secondary-dark); }
+.tag-md3 { background: #E8DEF8; color: #6750A4; }
+.tag-md2 { background: #E3F2FD; color: #1565C0; }
+.tag-new { background: #E8F5E9; color: #2E7D32; }
+
+/* Callout */
+.callout {
+  padding: 16px 20px; border-radius: var(--border-radius); margin: 16px 0;
+  border-left: 4px solid; font-size: 13px;
+}
+.callout-info { background: var(--brand-primary-light); border-color: var(--brand-primary); }
+.callout-warn { background: var(--brand-secondary-light); border-color: var(--brand-secondary); }
+.callout-tip { background: #E8F5E9; border-color: #4CAF50; }
+.callout-title { font-weight: 600; margin-bottom: 4px; }
+
+/* Accordion */
+.accordion { border: 1px solid var(--border-color); border-radius: var(--border-radius); margin: 8px 0; overflow: hidden; }
+.accordion-header {
+  padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: 14px;
+  background: var(--bg-card); display: flex; justify-content: space-between; align-items: center;
+  transition: background 0.15s ease; user-select: none;
+}
+.accordion-header:hover { background: var(--brand-primary-light); }
+[data-theme="dark"] .accordion-header:hover { background: rgba(1,97,148,0.1); }
+.accordion-header .arrow { transition: transform 0.2s ease; font-size: 12px; color: var(--text-tertiary); }
+.accordion-header.open .arrow { transform: rotate(90deg); }
+.accordion-body { padding: 0 16px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; }
+.accordion-body.open { max-height: 5000px; padding: 16px; }
+
+/* Architecture diagram */
+.arch-diagram {
+  display: flex; flex-direction: column; gap: 12px; margin: 20px 0; padding: 20px;
+  background: var(--bg-card); border-radius: var(--border-radius); border: 1px solid var(--border-color);
+}
+.arch-layer {
+  padding: 16px 20px; border-radius: 8px; border: 2px solid; text-align: center;
+}
+.arch-layer-1 { border-color: #78909C; background: #ECEFF1; color: #37474F; }
+.arch-layer-2 { border-color: var(--brand-primary); background: var(--brand-primary-light); color: var(--brand-primary-dark); }
+.arch-layer-3 { border-color: var(--brand-secondary); background: var(--brand-secondary-light); color: var(--brand-secondary-dark); }
+[data-theme="dark"] .arch-layer-1 { background: rgba(120,144,156,0.15); color: #B0BEC5; }
+[data-theme="dark"] .arch-layer-2 { background: rgba(1,97,148,0.15); color: #8BB7CE; }
+[data-theme="dark"] .arch-layer-3 { background: rgba(244,128,1,0.15); color: #FAC58B; }
+.arch-layer-title { font-weight: 700; font-size: 15px; }
+.arch-layer-desc { font-size: 12px; margin-top: 4px; opacity: 0.8; }
+.arch-arrow { text-align: center; font-size: 20px; color: var(--text-tertiary); }
+
+/* Component card */
+.comp-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 16px 0; }
+.comp-card {
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+  padding: 16px 20px; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.comp-card:hover { border-color: var(--brand-primary); box-shadow: var(--shadow-sm); }
+.comp-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.comp-card-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+.comp-card-desc { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
+.comp-card-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.comp-card-meta .meta-item {
+  font-size: 11px; padding: 2px 6px; border-radius: 3px;
+  background: var(--bg-code); color: var(--text-secondary); font-family: monospace;
+}
+
+/* Level cards */
+.level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+.level-card {
+  border: 2px solid var(--border-color); border-radius: var(--border-radius);
+  padding: 20px; text-align: center; transition: border-color 0.15s ease;
+}
+.level-card.recommended { border-color: var(--brand-primary); }
+.level-card-num { font-size: 32px; font-weight: 700; color: var(--brand-primary); }
+.level-card-title { font-size: 14px; font-weight: 600; margin: 8px 0 4px; }
+.level-card-desc { font-size: 12px; color: var(--text-tertiary); }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0 8px 28px; position: relative; font-size: 13px; border-bottom: 1px solid var(--border-color); }
+.checklist li::before { content: '☐'; position: absolute; left: 4px; color: var(--brand-primary); font-size: 16px; }
+
+/* Tooltip for copied */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; padding: 10px 20px; border-radius: 8px;
+  background: var(--brand-primary); color: #fff; font-size: 13px; font-weight: 500;
+  transform: translateY(80px); opacity: 0; transition: all 0.3s ease; z-index: 9999;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* Changelog */
+.changelog-entry { border-left: 3px solid var(--brand-primary); padding-left: 16px; margin-bottom: 24px; }
+.changelog-version { font-size: 18px; font-weight: 700; color: var(--brand-primary); }
+.changelog-date { font-size: 12px; color: var(--text-tertiary); margin-left: 8px; }
+.changelog-list { list-style: disc; padding-left: 20px; margin-top: 8px; }
+.changelog-list li { font-size: 13px; color: var(--text-secondary); padding: 2px 0; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+/* Print */
+@media print {
+  .header, .sidebar, .brand-panel, .progress-bar, .theme-toggle, .copy-btn { display: none !important; }
+  .main { margin: 0; padding: 20px; max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     PROGRESS BAR
+     ============================================ -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<!-- ============================================
+     HEADER
+     ============================================ -->
+<header class="header">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">&#9776;</button>
+    <div class="header-title">
+      MaterialDesignInXAML 使用手冊
+      <span class="badge">Allring Edition</span>
+      <span class="badge">v1</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="搜尋關鍵字...">
+    </div>
+    <span class="header-date">2026-04-13</span>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">&#9789;</button>
+  </div>
+</header>
+
+<!-- ============================================
+     BRAND COLOR PANEL
+     ============================================ -->
+<div class="brand-panel">
+  <span class="brand-panel-label">&#127912; 品牌色設定</span>
+  <div class="brand-panel-group">
+    <label>Primary:</label>
+    <div class="color-input-wrap">
+      <input type="color" id="primaryColor" value="#016194">
+      <input type="text" id="primaryHex" value="#016194" maxlength="7">
+    </div>
+  </div>
+  <div class="brand-panel-group">
+    <label>Secondary:</label>
+    <div class="color-input-wrap">
+      <input type="color" id="secondaryColor" value="#F48001">
+      <input type="text" id="secondaryHex" value="#F48001" maxlength="7">
+    </div>
+  </div>
+  <button class="btn-save" id="btnSave">儲存</button>
+  <button class="btn-reset" id="btnReset">重設為萬潤預設</button>
+</div>
+
+<!-- ============================================
+     SIDEBAR NAVIGATION
+     ============================================ -->
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">概覽</div>
+  <a class="nav-item" href="#ch1">1. 系統概覽</a>
+  <a class="nav-item nav-sub" href="#ch1-what">什麼是 MDIXAML</a>
+  <a class="nav-item nav-sub" href="#ch1-arch">核心架構圖</a>
+  <a class="nav-item nav-sub" href="#ch1-md2vs3">MD2 vs MD3</a>
+
+  <div class="nav-section">設計系統</div>
+  <a class="nav-item" href="#ch2">2. 色彩系統</a>
+  <a class="nav-item nav-sub" href="#ch2-layers">三層架構</a>
+  <a class="nav-item nav-sub" href="#ch2-scheme">MD3 動態配色</a>
+  <a class="nav-item nav-sub" href="#ch2-allring">萬潤品牌色</a>
+  <a class="nav-item nav-sub" href="#ch2-brushes">語義筆刷表</a>
+  <a class="nav-item nav-sub" href="#ch2-lightdark">Light / Dark</a>
+  <a class="nav-item nav-sub" href="#ch2-a11y">色彩無障礙</a>
+
+  <a class="nav-item" href="#ch3">3. 字型系統</a>
+  <a class="nav-item nav-sub" href="#ch3-scale">Type Scale</a>
+  <a class="nav-item nav-sub" href="#ch3-cjk">中文字型</a>
+
+  <div class="nav-section">元件</div>
+  <a class="nav-item" href="#ch4">4. 元件庫</a>
+  <a class="nav-item nav-sub" href="#ch4-buttons">按鈕類</a>
+  <a class="nav-item nav-sub" href="#ch4-inputs">輸入類</a>
+  <a class="nav-item nav-sub" href="#ch4-selection">選取類</a>
+  <a class="nav-item nav-sub" href="#ch4-cards">卡片與容器</a>
+  <a class="nav-item nav-sub" href="#ch4-data">資料展示</a>
+  <a class="nav-item nav-sub" href="#ch4-nav">導航類</a>
+  <a class="nav-item nav-sub" href="#ch4-feedback">回饋類</a>
+  <a class="nav-item nav-sub" href="#ch4-pickers">選擇器</a>
+  <a class="nav-item nav-sub" href="#ch4-layout">佈局類</a>
+  <a class="nav-item nav-sub" href="#ch4-special">特殊元件</a>
+
+  <div class="nav-section">實作</div>
+  <a class="nav-item" href="#ch5">5. 客製化指南</a>
+  <a class="nav-item nav-sub" href="#ch5-levels">四種層級</a>
+  <a class="nav-item nav-sub" href="#ch5-checklist">交付清單</a>
+
+  <a class="nav-item" href="#ch6">6. 工程師取用</a>
+  <a class="nav-item nav-sub" href="#ch6-install">安裝與設定</a>
+  <a class="nav-item nav-sub" href="#ch6-basic">基本使用</a>
+  <a class="nav-item nav-sub" href="#ch6-runtime">主題切換</a>
+  <a class="nav-item nav-sub" href="#ch6-advanced">進階客製化</a>
+  <a class="nav-item nav-sub" href="#ch6-snippets">程式碼片段</a>
+
+  <div class="nav-section">附錄</div>
+  <a class="nav-item" href="#ch7">7. 附錄</a>
+  <a class="nav-item nav-sub" href="#ch7-keys">Resource Key 索引</a>
+  <a class="nav-item nav-sub" href="#ch7-faq">FAQ</a>
+  <a class="nav-item nav-sub" href="#changelog">版本記錄</a>
+</nav>
+
+<!-- ============================================
+     MAIN CONTENT
+     ============================================ -->
+<main class="main" id="mainContent">
+
+<!-- ============ CHAPTER 1: 系統概覽 ============ -->
+<section id="ch1">
+<h1>MaterialDesignInXAML</h1>
+<p class="subtitle">設計師 & 工程師使用手冊 — Allring Edition v1</p>
+
+<h2>1. 系統概覽</h2>
+
+<h3 id="ch1-what">1.1 什麼是 MaterialDesignInXAML</h3>
+<div class="card">
+  <p><strong>MaterialDesignInXAML（簡稱 MDIXAML）</strong>是一套開源的 WPF UI 元件庫，將 Google Material Design 的設計語言完整移植到 Windows Presentation Foundation（WPF）平台。</p>
+  <p>它提供了：</p>
+  <ul style="padding-left:20px;color:var(--text-secondary);">
+    <li><strong>70+ 個已樣式化的 WPF 控件</strong>（按鈕、卡片、導航、對話框等）</li>
+    <li><strong>完整的色彩系統</strong>（19 種 Material 調色盤 + 語義筆刷）</li>
+    <li><strong>字型系統</strong>（內建 Roboto / Noto 字型 + Type Scale）</li>
+    <li><strong>主題引擎</strong>（Light/Dark 模式、動態配色、WCAG 無障礙對比度）</li>
+    <li><strong>MD3 支援</strong>（Material Design 3 動態配色方案，從種子色自動展開）</li>
+  </ul>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">&#128161; 與 Google Material Design 的關係</div>
+  MDIXAML 遵循 Google Material Design 規範，但針對 WPF 平台做了適配。它並非 Google 官方產品，而是社群維護的開源專案（MIT 授權）。目前同時支援 Material Design 2 和 Material Design 3。
+</div>
+
+<h3 id="ch1-arch">1.2 核心專案架構</h3>
+<div class="arch-diagram">
+  <div class="arch-layer arch-layer-1">
+    <div class="arch-layer-title">MaterialDesignColors.Wpf</div>
+    <div class="arch-layer-desc">色彩函式庫 — 19 種 Material 調色盤、色彩操作工具、HCT 色彩空間</div>
+  </div>
+  <div class="arch-arrow">&#9660;</div>
+  <div class="arch-layer arch-layer-2">
+    <div class="arch-layer-title">MaterialDesignThemes.Wpf</div>
+    <div class="arch-layer-desc">主函式庫 — 70+ 控件樣式、主題引擎（BundledTheme / CustomColorTheme / PaletteHelper）、語義筆刷</div>
+  </div>
+  <div class="arch-arrow">&#9660;</div>
+  <div class="arch-layer arch-layer-3">
+    <div class="arch-layer-title">你的 WPF 應用程式</div>
+    <div class="arch-layer-desc">在 App.xaml 中引入主題 + Defaults.xaml，即可使用所有元件和色彩系統</div>
+  </div>
+</div>
+
+<h3 id="ch1-md2vs3">1.3 MD2 vs MD3 差異總覽</h3>
+<table>
+  <thead>
+    <tr><th>項目</th><th>Material Design 2</th><th>Material Design 3 <span class="tag tag-md3" style="font-size:10px;">推薦</span></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>配色方式</td><td>預設調色盤選色</td><td>種子色（Seed Color）自動展開 29 個 Color Role</td></tr>
+    <tr><td>入口檔</td><td><code>MaterialDesign2.Defaults.xaml</code></td><td><code>MaterialDesign3.Defaults.xaml</code></td></tr>
+    <tr><td>字型</td><td>Roboto</td><td>Noto</td></tr>
+    <tr><td>圓角</td><td>4px 為主</td><td>更大的圓角（12-16px），強調圓潤感</td></tr>
+    <tr><td>色彩角色</td><td>Primary / Secondary / 基本語義色</td><td>29 個角色：Primary, OnPrimary, PrimaryContainer, Surface, Outline...</td></tr>
+    <tr><td>元件外觀</td><td>扁平 + 陰影</td><td>更柔和的色調、Tonal Elevation（色調提升取代陰影）</td></tr>
+    <tr><td>導航元件</td><td>基本</td><td>NavigationBar / NavigationRail / NavigationDrawer（MD3 專屬）</td></tr>
+    <tr><td>Type Scale</td><td>13 級</td><td>15 級（Display/Headline/Title/Body/Label × S/M/L）</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-tip">
+  <div class="callout-title">&#9989; 本手冊以 MD3 為主軸</div>
+  所有內容預設描述 Material Design 3 的行為。MD2 的差異會以 <span class="tag tag-md2">MD2</span> 標籤標註。
+</div>
+</section>
+
+<!-- ============ CHAPTER 2: 色彩系統 ============ -->
+<section id="ch2">
+<h2>2. 色彩系統</h2>
+
+<h3 id="ch2-layers">2.1 三層架構</h3>
+<p>MDIXAML 的色彩系統分為三個層次，從底層到頂層：</p>
+
+<div class="card">
+<h4>Layer 1：基底色（Base Theme Colors）</h4>
+<p>定義在 <code>BaseThemeColors.cs</code> 和 <code>MaterialDesignTheme.BaseThemeColors.xaml</code></p>
+<p>提供最基礎的中性色階，不帶任何品牌色彩：</p>
+<table>
+  <thead><tr><th>類別</th><th>色階範圍</th><th>用途</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Neutral</strong></td><td>50 ~ 900（灰階）</td><td>背景、邊框、分隔線</td></tr>
+    <tr><td><strong>White</strong></td><td>0 ~ 1000（透明度梯度）</td><td>Light 模式的基底</td></tr>
+    <tr><td><strong>Black</strong></td><td>0 ~ 1000（透明度梯度）</td><td>Dark 模式的基底</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card">
+<h4>Layer 2：色票（Swatch / Color Palette）</h4>
+<p>定義在 <code>MaterialDesignColors.Wpf/Themes/</code></p>
+<p>包含 19 種 Material 調色盤，每種有完整的色階：</p>
+<div class="color-grid" id="swatchGrid">
+  <!-- JS 動態生成 -->
+</div>
+<p style="font-size:12px;color:var(--text-tertiary);">每種色票包含 Primary 50-900（10 級）+ Secondary 100-700（4 級），每級都有對應的前景色（Foreground）確保文字可讀性。</p>
+</div>
+
+<div class="card">
+<h4>Layer 3：語義筆刷（Semantic Brush）</h4>
+<p>定義在 <code>MaterialDesignTheme.Light.xaml</code> / <code>MaterialDesignTheme.Dark.xaml</code></p>
+<p>這是元件實際引用的層級。約 67 個語義筆刷，例如：</p>
+<ul style="padding-left:20px;color:var(--text-secondary);font-size:13px;">
+  <li><code>MaterialDesign.Brush.Primary</code> — 主要品牌色</li>
+  <li><code>MaterialDesign.Brush.Primary.Light</code> — 主色淺色變體</li>
+  <li><code>MaterialDesign.Brush.Primary.Dark</code> — 主色深色變體</li>
+  <li><code>MaterialDesign.Brush.Primary.Foreground</code> — 主色上的前景文字</li>
+  <li><code>MaterialDesign.Brush.Secondary</code> — 次要品牌色</li>
+  <li><code>MaterialDesign.Brush.Background</code> — 頁面背景</li>
+  <li><code>MaterialDesign.Brush.Card.Background</code> — 卡片背景</li>
+  <li><code>MaterialDesign.Brush.Body</code> — 內文文字</li>
+  <li>...等共 67 個</li>
+</ul>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">&#128161; 設計師重點</div>
+  你在 Figma 中定義的顏色 Token，最終會對應到 Layer 3 的語義筆刷。例如你的 <code>color/primary</code> = MDIXAML 的 <code>MaterialDesign.Brush.Primary</code>。
+</div>
+
+<h3 id="ch2-scheme">2.2 MD3 動態配色方案（Scheme）</h3>
+<p>Material Design 3 引入了<strong>動態配色（Dynamic Color）</strong>機制：只需一個種子色，即可自動生成完整的 29 個 Color Role。</p>
+
+<div class="card">
+<h4>29 個 Color Role 對照表</h4>
+<table>
+  <thead><tr><th>Color Role</th><th>說明</th><th>典型用途</th></tr></thead>
+  <tbody>
+    <tr><td><code>Primary</code></td><td>主要品牌色</td><td>主按鈕、重要操作、品牌強調</td></tr>
+    <tr><td><code>OnPrimary</code></td><td>Primary 上的前景色</td><td>主按鈕上的文字/圖示</td></tr>
+    <tr><td><code>PrimaryContainer</code></td><td>主色容器（淺色調）</td><td>選中狀態背景、強調卡片</td></tr>
+    <tr><td><code>OnPrimaryContainer</code></td><td>主色容器上的前景</td><td>容器內文字</td></tr>
+    <tr><td><code>Secondary</code></td><td>次要品牌色</td><td>次要按鈕、篩選器、較不重要的操作</td></tr>
+    <tr><td><code>OnSecondary</code></td><td>Secondary 上的前景色</td><td>次要按鈕上的文字</td></tr>
+    <tr><td><code>SecondaryContainer</code></td><td>次色容器</td><td>Chip、次要選中狀態</td></tr>
+    <tr><td><code>OnSecondaryContainer</code></td><td>次色容器前景</td><td>容器內文字</td></tr>
+    <tr><td><code>Tertiary</code></td><td>第三色</td><td>補充色彩，平衡主/次色</td></tr>
+    <tr><td><code>OnTertiary</code></td><td>第三色前景</td><td>文字/圖示</td></tr>
+    <tr><td><code>TertiaryContainer</code></td><td>第三色容器</td><td>輔助強調</td></tr>
+    <tr><td><code>OnTertiaryContainer</code></td><td>第三色容器前景</td><td>文字</td></tr>
+    <tr><td><code>Error</code></td><td>錯誤色</td><td>錯誤提示、驗證失敗</td></tr>
+    <tr><td><code>OnError</code></td><td>錯誤色前景</td><td>錯誤按鈕文字</td></tr>
+    <tr><td><code>ErrorContainer</code></td><td>錯誤容器</td><td>錯誤訊息背景</td></tr>
+    <tr><td><code>OnErrorContainer</code></td><td>錯誤容器前景</td><td>錯誤訊息文字</td></tr>
+    <tr><td><code>Background</code></td><td>頁面背景</td><td>App 主背景</td></tr>
+    <tr><td><code>OnBackground</code></td><td>背景上的文字</td><td>主要內文</td></tr>
+    <tr><td><code>Surface</code></td><td>表面色</td><td>卡片、對話框背景</td></tr>
+    <tr><td><code>OnSurface</code></td><td>表面前景</td><td>卡片內文字</td></tr>
+    <tr><td><code>SurfaceVariant</code></td><td>表面變體</td><td>次要容器背景</td></tr>
+    <tr><td><code>OnSurfaceVariant</code></td><td>表面變體前景</td><td>次要文字</td></tr>
+    <tr><td><code>Outline</code></td><td>邊框色</td><td>輸入框邊框、卡片邊框</td></tr>
+    <tr><td><code>OutlineVariant</code></td><td>邊框變體</td><td>分隔線</td></tr>
+    <tr><td><code>Shadow</code></td><td>陰影色</td><td>Elevation 陰影</td></tr>
+    <tr><td><code>Scrim</code></td><td>遮罩色</td><td>Modal 背景遮罩</td></tr>
+    <tr><td><code>InverseSurface</code></td><td>反轉表面</td><td>Snackbar 背景</td></tr>
+    <tr><td><code>InverseOnSurface</code></td><td>反轉表面前景</td><td>Snackbar 文字</td></tr>
+    <tr><td><code>InversePrimary</code></td><td>反轉主色</td><td>Dark 模式下的主色</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">&#9888;&#65039; 種子色展開機制</div>
+  MDIXAML 使用 HCT（Hue, Chroma, Tone）色彩空間，從你的種子色提取色相和彩度，然後在不同明度（Tone）上生成完整的色調盤（Tonal Palette）。這意味著<strong>自動展開的色階可能與萬潤 token 中手動定義的色階略有差異</strong>。方案 A 接受此差異以獲得最快的整合速度。
+</div>
+
+<h3 id="ch2-allring">2.3 萬潤品牌色整合</h3>
+<div class="card">
+<h4>&#127912; 萬潤品牌色 → MDIXAML 對應</h4>
+<table>
+  <thead><tr><th>萬潤 Token</th><th>色碼</th><th>MDIXAML 用途</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>--color-primary</code></td>
+      <td><span style="display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:middle;margin-right:4px;" class="swatch-primary"></span> <code class="brand-primary-text">#016194</code></td>
+      <td>作為 <code>CustomColorTheme.PrimaryColor</code> 種子色</td>
+    </tr>
+    <tr>
+      <td><code>--color-secondary</code></td>
+      <td><span style="display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:middle;margin-right:4px;" class="swatch-secondary"></span> <code class="brand-secondary-text">#F48001</code></td>
+      <td>作為 <code>CustomColorTheme.SecondaryColor</code> 種子色</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 style="margin-top:16px;">快速套用（App.xaml）</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;Application.Resources&gt;
+  &lt;ResourceDictionary&gt;
+    &lt;ResourceDictionary.MergedDictionaries&gt;
+
+      &lt;!-- 萬潤品牌色主題 --&gt;
+      &lt;materialDesign:CustomColorTheme
+        BaseTheme="Light"
+        PrimaryColor="<span class="brand-primary-text">#016194</span>"
+        SecondaryColor="<span class="brand-secondary-text">#F48001</span>" /&gt;
+
+      &lt;!-- MD3 元件樣式 --&gt;
+      &lt;ResourceDictionary
+        Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" /&gt;
+
+    &lt;/ResourceDictionary.MergedDictionaries&gt;
+  &lt;/ResourceDictionary&gt;
+&lt;/Application.Resources&gt;</code></pre>
+</div>
+<p style="font-size:12px;color:var(--text-tertiary);">&#128161; 只需這兩個色碼，MDIXAML 會自動展開為完整的 MD3 配色方案（29 個 Color Role + Light/Dark 變體）。</p>
+</div>
+
+<h3 id="ch2-brushes">2.4 語義筆刷完整表（Semantic Brush）</h3>
+<p>以下是 MDIXAML 中最常用的語義筆刷，元件直接透過 <code>{DynamicResource}</code> 引用：</p>
+<table>
+  <thead><tr><th>Resource Key</th><th>用途</th><th>Light 模式</th><th>Dark 模式</th></tr></thead>
+  <tbody>
+    <tr><td><code>MaterialDesign.Brush.Primary</code></td><td>主要品牌色</td><td>由 PrimaryColor 決定</td><td>由 PrimaryColor 決定</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Primary.Light</code></td><td>主色淺色變體</td><td>自動展開</td><td>自動展開</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Primary.Mid</code></td><td>主色中間調</td><td>自動展開</td><td>自動展開</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Primary.Dark</code></td><td>主色深色變體</td><td>自動展開</td><td>自動展開</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Primary.Foreground</code></td><td>主色上的文字</td><td>自動計算對比</td><td>自動計算對比</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Secondary</code></td><td>次要品牌色</td><td>由 SecondaryColor 決定</td><td>由 SecondaryColor 決定</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Secondary.Light</code></td><td>次色淺色</td><td>自動展開</td><td>自動展開</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Secondary.Mid</code></td><td>次色中間調</td><td>自動展開</td><td>自動展開</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Secondary.Dark</code></td><td>次色深色</td><td>自動展開</td><td>自動展開</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Secondary.Foreground</code></td><td>次色前景</td><td>自動計算對比</td><td>自動計算對比</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Background</code></td><td>頁面背景</td><td>#FFFFFF</td><td>#121212</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Card.Background</code></td><td>卡片背景</td><td>#FFFFFF</td><td>#1E1E1E</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Body</code></td><td>內文文字</td><td>rgba(0,0,0,0.87)</td><td>rgba(255,255,255,0.87)</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Body.Light</code></td><td>次要文字</td><td>rgba(0,0,0,0.54)</td><td>rgba(255,255,255,0.54)</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Chip.Background</code></td><td>Chip 背景</td><td>Neutral 100</td><td>Neutral 800</td></tr>
+    <tr><td><code>MaterialDesign.Brush.TextBox.HoverBackground</code></td><td>輸入框懸停底色</td><td>Neutral 50</td><td>Neutral 850</td></tr>
+    <tr><td><code>MaterialDesign.Brush.ValidationError</code></td><td>驗證錯誤</td><td>#F44336</td><td>#CF6679</td></tr>
+    <tr><td><code>MaterialDesign.Brush.FlatButton.Click</code></td><td>扁平按鈕點擊</td><td>Primary + alpha</td><td>Primary + alpha</td></tr>
+  </tbody>
+</table>
+<p style="font-size:12px;color:var(--text-tertiary);">完整的 67 個 Brush 列表請參閱 <a href="#ch7-keys">附錄：Resource Key 索引</a>。</p>
+
+<h3 id="ch2-lightdark">2.5 Light / Dark 模式</h3>
+<div class="card">
+<p>MDIXAML 內建 Light 和 Dark 兩套主題，透過 <code>BaseTheme</code> 屬性切換：</p>
+<table>
+  <thead><tr><th>元素</th><th>Light</th><th>Dark</th></tr></thead>
+  <tbody>
+    <tr><td>頁面背景</td><td>#FFFFFF</td><td>#121212</td></tr>
+    <tr><td>卡片背景</td><td>#FFFFFF</td><td>#1E1E1E</td></tr>
+    <tr><td>主要文字</td><td>rgba(0,0,0,0.87)</td><td>rgba(255,255,255,0.87)</td></tr>
+    <tr><td>次要文字</td><td>rgba(0,0,0,0.54)</td><td>rgba(255,255,255,0.54)</td></tr>
+    <tr><td>分隔線</td><td>rgba(0,0,0,0.12)</td><td>rgba(255,255,255,0.12)</td></tr>
+    <tr><td>品牌色</td><td colspan="2">Primary / Secondary 在兩套主題中保持一致，但 Container 色調會自動調整</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="ch2-a11y">2.6 色彩無障礙（Accessibility）</h3>
+<div class="card">
+<p>MDIXAML 內建 <code>ColorAdjustment</code> 機制，自動確保 WCAG 對比度：</p>
+<table>
+  <thead><tr><th>屬性</th><th>預設值</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td><code>DesiredContrastRatio</code></td><td>4.5</td><td>WCAG AA 標準（一般文字）</td></tr>
+    <tr><td><code>Contrast</code></td><td>Medium</td><td>Low / Medium / High 三種對比度等級</td></tr>
+    <tr><td><code>Colors</code></td><td>All</td><td>對所有色彩套用對比度調整</td></tr>
+  </tbody>
+</table>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;materialDesign:CustomColorTheme BaseTheme="Light"
+  PrimaryColor="<span class="brand-primary-text">#016194</span>"
+  SecondaryColor="<span class="brand-secondary-text">#F48001</span>"&gt;
+  &lt;materialDesign:CustomColorTheme.ColorAdjustment&gt;
+    &lt;materialDesign:ColorAdjustment
+      DesiredContrastRatio="4.5"
+      Contrast="Medium"
+      Colors="All" /&gt;
+  &lt;/materialDesign:CustomColorTheme.ColorAdjustment&gt;
+&lt;/materialDesign:CustomColorTheme&gt;</code></pre>
+</div>
+</div>
+</section>
+
+<!-- ============ CHAPTER 3: 字型系統 ============ -->
+<section id="ch3">
+<h2>3. 字型系統</h2>
+
+<h3 id="ch3-scale">3.1 MD3 Type Scale</h3>
+<p>Material Design 3 定義了 15 級字型大小，分為 5 個類別 × 3 個尺寸：</p>
+
+<table>
+  <thead><tr><th>類別</th><th>尺寸</th><th>字型大小</th><th>字重</th><th>行高</th><th>Style Key</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="3"><strong>Display</strong><br><span style="font-size:11px;color:var(--text-tertiary);">大型標題</span></td><td>Large</td><td>57px</td><td>Regular</td><td>64px</td><td><code>MaterialDesignDisplayLargeTextBlock</code></td></tr>
+    <tr><td>Medium</td><td>45px</td><td>Regular</td><td>52px</td><td><code>MaterialDesignDisplayMediumTextBlock</code></td></tr>
+    <tr><td>Small</td><td>36px</td><td>Regular</td><td>44px</td><td><code>MaterialDesignDisplaySmallTextBlock</code></td></tr>
+
+    <tr><td rowspan="3"><strong>Headline</strong><br><span style="font-size:11px;color:var(--text-tertiary);">章節標題</span></td><td>Large</td><td>32px</td><td>Regular</td><td>40px</td><td><code>MaterialDesignHeadlineLargeTextBlock</code></td></tr>
+    <tr><td>Medium</td><td>28px</td><td>Regular</td><td>36px</td><td><code>MaterialDesignHeadlineMediumTextBlock</code></td></tr>
+    <tr><td>Small</td><td>24px</td><td>Regular</td><td>32px</td><td><code>MaterialDesignHeadlineSmallTextBlock</code></td></tr>
+
+    <tr><td rowspan="3"><strong>Title</strong><br><span style="font-size:11px;color:var(--text-tertiary);">子標題</span></td><td>Large</td><td>22px</td><td>Medium</td><td>28px</td><td><code>MaterialDesignTitleLargeTextBlock</code></td></tr>
+    <tr><td>Medium</td><td>16px</td><td>Medium</td><td>24px</td><td><code>MaterialDesignTitleMediumTextBlock</code></td></tr>
+    <tr><td>Small</td><td>14px</td><td>Medium</td><td>20px</td><td><code>MaterialDesignTitleSmallTextBlock</code></td></tr>
+
+    <tr><td rowspan="3"><strong>Body</strong><br><span style="font-size:11px;color:var(--text-tertiary);">內文</span></td><td>Large</td><td>16px</td><td>Regular</td><td>24px</td><td><code>MaterialDesignBodyLargeTextBlock</code></td></tr>
+    <tr><td>Medium</td><td>14px</td><td>Regular</td><td>20px</td><td><code>MaterialDesignBodyMediumTextBlock</code></td></tr>
+    <tr><td>Small</td><td>12px</td><td>Regular</td><td>16px</td><td><code>MaterialDesignBodySmallTextBlock</code></td></tr>
+
+    <tr><td rowspan="3"><strong>Label</strong><br><span style="font-size:11px;color:var(--text-tertiary);">標籤/按鈕</span></td><td>Large</td><td>14px</td><td>Medium</td><td>20px</td><td><code>MaterialDesignLabelLargeTextBlock</code></td></tr>
+    <tr><td>Medium</td><td>12px</td><td>Medium</td><td>16px</td><td><code>MaterialDesignLabelMediumTextBlock</code></td></tr>
+    <tr><td>Small</td><td>11px</td><td>Medium</td><td>16px</td><td><code>MaterialDesignLabelSmallTextBlock</code></td></tr>
+  </tbody>
+</table>
+
+<div class="code-block">
+  <span class="code-lang">XAML — 使用範例</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;TextBlock Style="{StaticResource MaterialDesignHeadlineMediumTextBlock}"
+           Text="章節標題" /&gt;
+
+&lt;TextBlock Style="{StaticResource MaterialDesignBodyMediumTextBlock}"
+           Text="這是內文段落" /&gt;
+
+&lt;TextBlock Style="{StaticResource MaterialDesignLabelLargeTextBlock}"
+           Text="按鈕文字" /&gt;</code></pre>
+</div>
+
+<h3 id="ch3-cjk">3.2 中文字型注意事項</h3>
+<div class="callout callout-warn">
+  <div class="callout-title">&#9888;&#65039; 中文字型相容性</div>
+  <p>MDIXAML 內建的 Roboto（MD2）和 Noto（MD3）主要涵蓋拉丁字母。對於繁體中文內容：</p>
+  <ul style="padding-left:20px;font-size:13px;">
+    <li><strong>Noto Sans TC</strong>（MD3 的 Noto 家族有中文版）— 推薦作為中文字型</li>
+    <li><strong>Microsoft JhengHei（微軟正黑體）</strong>— Windows 內建，最安全的後備字型</li>
+    <li>建議的 FontFamily 設定：<code>Noto Sans TC, Microsoft JhengHei, sans-serif</code></li>
+  </ul>
+</div>
+
+<div class="card">
+<h4>替換字型的方法</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;!-- 在 App.xaml 中覆寫 MaterialDesignFont --&gt;
+&lt;FontFamily x:Key="MaterialDesignFont"&gt;
+  pack://application:,,,/YourApp;component/Fonts/#Noto Sans TC
+&lt;/FontFamily&gt;</code></pre>
+</div>
+<p style="font-size:12px;color:var(--text-tertiary);">或在 .csproj 設定 <code>&lt;IncludeMaterialDesignFont&gt;False&lt;/IncludeMaterialDesignFont&gt;</code> 停用內建字型嵌入。</p>
+</div>
+</section>
+
+<!-- ============ CHAPTER 4: 元件庫 ============ -->
+<section id="ch4">
+<h2>4. 元件庫（70+ 元件）</h2>
+<p>以下是 MDIXAML 提供的所有元件，按功能分類。每個元件都包含 Style Key、可用變體和設計師需要知道的 Assist 屬性。</p>
+
+<!-- 4.1 按鈕類 -->
+<h3 id="ch4-buttons">4.1 按鈕類（Buttons）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Button — 按鈕</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">最常用的操作觸發元件，支援多種視覺變體。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th><th>使用情境</th></tr></thead>
+    <tbody>
+      <tr><td>Raised（凸起）</td><td><code>MaterialDesignRaisedButton</code></td><td>主要操作 CTA</td></tr>
+      <tr><td>Raised Light</td><td><code>MaterialDesignRaisedLightButton</code></td><td>較柔和的主要操作</td></tr>
+      <tr><td>Raised Dark</td><td><code>MaterialDesignRaisedDarkButton</code></td><td>深色強調操作</td></tr>
+      <tr><td>Raised Secondary</td><td><code>MaterialDesignRaisedSecondaryButton</code></td><td>次要的凸起按鈕</td></tr>
+      <tr><td>Flat（扁平）</td><td><code>MaterialDesignFlatButton</code></td><td>次要操作、對話框按鈕</td></tr>
+      <tr><td>Flat Light</td><td><code>MaterialDesignFlatLightButton</code></td><td>淺色背景上的扁平按鈕</td></tr>
+      <tr><td>Flat Dark</td><td><code>MaterialDesignFlatDarkButton</code></td><td>深色背景上的扁平按鈕</td></tr>
+      <tr><td>Flat Secondary</td><td><code>MaterialDesignFlatSecondaryButton</code></td><td>次色的扁平按鈕</td></tr>
+      <tr><td>Outlined（外框）</td><td><code>MaterialDesignOutlinedButton</code></td><td>輔助操作，邊框明確</td></tr>
+      <tr><td>Outlined Light</td><td><code>MaterialDesignOutlinedLightButton</code></td><td>淺色外框按鈕</td></tr>
+      <tr><td>Outlined Dark</td><td><code>MaterialDesignOutlinedDarkButton</code></td><td>深色外框按鈕</td></tr>
+      <tr><td>Outlined Secondary</td><td><code>MaterialDesignOutlinedSecondaryButton</code></td><td>次色外框按鈕</td></tr>
+      <tr><td>Paper（紙面）</td><td><code>MaterialDesignPaperButton</code></td><td>最低強調，像紙面上的文字</td></tr>
+      <tr><td>Paper Light</td><td><code>MaterialDesignPaperLightButton</code></td><td>淺色紙面按鈕</td></tr>
+      <tr><td>Paper Dark</td><td><code>MaterialDesignPaperDarkButton</code></td><td>深色紙面按鈕</td></tr>
+      <tr><td>Paper Secondary</td><td><code>MaterialDesignPaperSecondaryButton</code></td><td>次色紙面按鈕</td></tr>
+    </tbody>
+  </table>
+  <h4>Assist 附加屬性</h4>
+  <div class="comp-card-meta">
+    <span class="meta-item">ButtonAssist.CornerRadius</span>
+    <span class="meta-item">ElevationAssist.Elevation</span>
+    <span class="meta-item">RippleAssist.Feedback</span>
+    <span class="meta-item">ButtonProgressAssist.IsIndicatorVisible</span>
+    <span class="meta-item">ButtonProgressAssist.Value</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">FloatingActionButton — 浮動操作按鈕（FAB）</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">圓形浮動按鈕，用於頁面最重要的操作。通常搭配 PackIcon 圖示使用。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th><th>使用情境</th></tr></thead>
+    <tbody>
+      <tr><td>Regular FAB</td><td><code>MaterialDesignFloatingActionButton</code></td><td>主要浮動操作</td></tr>
+      <tr><td>Mini FAB</td><td><code>MaterialDesignFloatingActionMiniButton</code></td><td>較小的浮動操作</td></tr>
+      <tr><td>Light FAB</td><td><code>MaterialDesignFloatingActionLightButton</code></td><td>淺色浮動按鈕</td></tr>
+      <tr><td>Dark FAB</td><td><code>MaterialDesignFloatingActionDarkButton</code></td><td>深色浮動按鈕</td></tr>
+      <tr><td>Secondary FAB</td><td><code>MaterialDesignFloatingActionSecondaryButton</code></td><td>次色浮動按鈕</td></tr>
+      <tr><td>Extended FAB</td><td><code>MaterialDesignExtendedFloatingActionButton</code></td><td>帶文字標籤的延伸 FAB</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">IconButton — 圖示按鈕</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">只有圖示的按鈕，不含文字。適合 ToolBar、列表操作等空間有限的場景。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th></tr></thead>
+    <tbody>
+      <tr><td>Standard</td><td><code>MaterialDesignIconButton</code></td></tr>
+      <tr><td>Foreground</td><td><code>MaterialDesignIconForegroundButton</code></td></tr>
+      <tr><td>Tool</td><td><code>MaterialDesignToolButton</code></td></tr>
+      <tr><td>Tool Foreground</td><td><code>MaterialDesignToolForegroundButton</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">SplitButton — 分割按鈕</span></div>
+  <div class="comp-card-desc">按鈕右側有下拉箭頭，點擊主區域觸發預設操作，點擊箭頭展開更多選項。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">Style: MaterialDesignSplitButton</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ToggleButton — 切換按鈕</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">可切換開/關狀態的按鈕，常用於工具列（粗體/斜體等）。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th></tr></thead>
+    <tbody>
+      <tr><td>Standard</td><td><code>MaterialDesignFlatToggleButton</code></td></tr>
+      <tr><td>Primary</td><td><code>MaterialDesignFlatPrimaryToggleButton</code></td></tr>
+      <tr><td>Secondary</td><td><code>MaterialDesignFlatSecondaryToggleButton</code></td></tr>
+      <tr><td>Switch</td><td><code>MaterialDesignSwitchToggleButton</code></td></tr>
+      <tr><td>Switch (MD3)</td><td><code>MaterialDesignSwitchAccentToggleButton</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">PopupBox — 彈出選單按鈕</span></div>
+  <div class="comp-card-desc">點擊按鈕彈出一個自訂內容的面板（如更多操作選單）。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">Style: MaterialDesignPopupBox</span>
+    <span class="meta-item">PopupBox.PlacementMode</span>
+    <span class="meta-item">PopupBox.ToggleContent</span>
+  </div>
+</div>
+
+<!-- 4.2 輸入類 -->
+<h3 id="ch4-inputs">4.2 輸入類（Inputs）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">TextBox — 文字輸入框</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">最基本的文字輸入元件，支援 Floating Label、Hint、Helper Text 和驗證。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>Outlined（外框）</td><td><code>MaterialDesignOutlinedTextBox</code></td><td>MD3 推薦，邊框明確</td></tr>
+      <tr><td>Filled（填滿）</td><td><code>MaterialDesignFilledTextBox</code></td><td>有底色的輸入框</td></tr>
+      <tr><td>Standard</td><td><code>MaterialDesignTextBox</code></td><td>底線樣式</td></tr>
+    </tbody>
+  </table>
+  <h4>Assist 附加屬性（TextFieldAssist）</h4>
+  <div class="comp-card-meta">
+    <span class="meta-item">HintAssist.Hint</span>
+    <span class="meta-item">HintAssist.IsFloating</span>
+    <span class="meta-item">HintAssist.HelperText</span>
+    <span class="meta-item">TextFieldAssist.HasClearButton</span>
+    <span class="meta-item">TextFieldAssist.HasLeadingIcon</span>
+    <span class="meta-item">TextFieldAssist.HasTrailingIcon</span>
+    <span class="meta-item">TextFieldAssist.PrefixText</span>
+    <span class="meta-item">TextFieldAssist.SuffixText</span>
+    <span class="meta-item">TextFieldAssist.CharacterCounterVisibility</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">PasswordBox — 密碼輸入框</span></div>
+  <div class="comp-card-desc">密碼輸入專用，支援顯示/隱藏密碼切換、Floating Label。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignOutlinedPasswordBox</span>
+    <span class="meta-item">MaterialDesignFilledPasswordBox</span>
+    <span class="meta-item">PasswordBoxAssist.ManagedRevealButton</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ComboBox — 下拉選單</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">下拉式選擇元件，支援 Floating Label、篩選搜尋。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th></tr></thead>
+    <tbody>
+      <tr><td>Outlined</td><td><code>MaterialDesignOutlinedComboBox</code></td></tr>
+      <tr><td>Filled</td><td><code>MaterialDesignFilledComboBox</code></td></tr>
+      <tr><td>Standard</td><td><code>MaterialDesignComboBox</code></td></tr>
+    </tbody>
+  </table>
+  <div class="comp-card-meta">
+    <span class="meta-item">ComboBoxAssist.ShowSelectedItem</span>
+    <span class="meta-item">ComboBoxAssist.ClassicMode</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">AutoSuggestBox — 自動建議輸入框</span></div>
+  <div class="comp-card-desc">輸入時自動顯示建議選項的下拉列表，適合搜尋場景。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：MaterialDesignThemes.Wpf.AutoSuggestBox</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">NumericUpDown (DecimalUpDown) — 數值輸入框</span></div>
+  <div class="comp-card-desc">帶有上/下箭頭的數值輸入元件，支援整數和小數。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：MaterialDesignThemes.Wpf.DecimalUpDown</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">RichTextBox — 富文字輸入框</span></div>
+  <div class="comp-card-desc">支援格式化文字的輸入區域。</div>
+  <div class="comp-card-meta"><span class="meta-item">Style: MaterialDesignRichTextBox</span></div>
+</div>
+
+<!-- 4.3 選取類 -->
+<h3 id="ch4-selection">4.3 選取類（Selection）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">CheckBox — 核取方塊</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">用於多重選取或開關設定。支援三態（Checked / Unchecked / Indeterminate）。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignCheckBox</span>
+    <span class="meta-item">MaterialDesignFilterChipCheckBox</span>
+    <span class="meta-item">CheckBoxAssist.CheckBoxSize</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">RadioButton — 單選按鈕</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">用於從多個選項中選擇一個。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignRadioButton</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Slider — 滑桿</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">用於在一個範圍內選取數值。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignDiscreteSlider</span>
+    <span class="meta-item">SliderAssist.OnlyShowFocusVisualWhileDragging</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">RatingBar — 評分條</span></div>
+  <div class="comp-card-desc">星星評分元件，支援自訂圖示和半星評分。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：MaterialDesignThemes.Wpf.RatingBar</span></div>
+</div>
+
+<!-- 4.4 卡片與容器 -->
+<h3 id="ch4-cards">4.4 卡片與容器（Cards & Containers）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Card — 卡片</span> <span class="tag tag-md3">MD3</span></div>
+  <div class="comp-card-desc">內容容器，用於將相關資訊分組顯示。</div>
+  <table>
+    <thead><tr><th>變體</th><th>Style Key</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>Elevated</td><td><code>MaterialDesignElevatedCard</code></td><td>有陰影的凸起卡片</td></tr>
+      <tr><td>Outlined</td><td><code>MaterialDesignOutlinedCard</code></td><td>有邊框的扁平卡片</td></tr>
+    </tbody>
+  </table>
+  <div class="comp-card-meta">
+    <span class="meta-item">Card.UniformCornerRadius</span>
+    <span class="meta-item">ElevationAssist.Elevation</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">GroupBox — 分組框</span></div>
+  <div class="comp-card-desc">帶有標題的內容分組容器。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignGroupBox</span>
+    <span class="meta-item">MaterialDesignCardGroupBox</span>
+    <span class="meta-item">MaterialDesignElevatedCardGroupBox</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Expander — 可展開面板</span></div>
+  <div class="comp-card-desc">點擊標題列可展開/收合內容的面板。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignExpander</span>
+    <span class="meta-item">ExpanderAssist.HorizontalHeaderPadding</span>
+    <span class="meta-item">ExpanderAssist.DownHeaderPadding</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ColorZone — 色彩區域</span></div>
+  <div class="comp-card-desc">指定區域的前景/背景色彩模式，常用於 AppBar、ToolBar 區域。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">ColorZone.Mode: PrimaryLight / PrimaryMid / PrimaryDark / SecondaryLight / SecondaryMid / SecondaryDark / Accent / Light / Dark / Standard / Inverted / Custom</span>
+  </div>
+</div>
+
+<!-- 4.5 資料展示 -->
+<h3 id="ch4-data">4.5 資料展示（Data Display）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">DataGrid — 資料表格</span></div>
+  <div class="comp-card-desc">表格形式的資料展示與編輯元件，支援排序、選取、自訂欄位。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">DataGridAssist.CellPadding</span>
+    <span class="meta-item">DataGridAssist.ColumnHeaderPadding</span>
+    <span class="meta-item">DataGridAssist.EnableEditBoxAssist</span>
+    <span class="meta-item">DataGridAssist.AutoGeneratedCheckBoxStyle</span>
+    <span class="meta-item">DataGridAssist.AutoGeneratedTextStyle</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ListView — 列表檢視</span></div>
+  <div class="comp-card-desc">垂直列表顯示項目，支援選取和多欄位顯示。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignListView</span>
+    <span class="meta-item">ListBoxAssist.IsToggle</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">TreeView — 樹狀檢視</span></div>
+  <div class="comp-card-desc">階層式資料結構的展示，可展開/收合子節點。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignTreeView</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">TreeListView — 樹狀列表</span></div>
+  <div class="comp-card-desc">結合 TreeView 和 ListView 的混合元件，表格 + 階層結構。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：MaterialDesignThemes.Wpf.TreeListView</span></div>
+</div>
+
+<!-- 4.6 導航類 -->
+<h3 id="ch4-nav">4.6 導航類（Navigation）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">NavigationBar — 底部導航列</span> <span class="tag tag-md3">MD3 專屬</span></div>
+  <div class="comp-card-desc">畫面底部的導航列，包含 3~5 個主要目的地。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：NavigationBar / NavigationBarItem</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">NavigationDrawer — 導航抽屜</span> <span class="tag tag-md3">MD3 專屬</span></div>
+  <div class="comp-card-desc">從側邊滑出的導航面板，適合較多導航項目的場景。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：NavigationDrawer / NavigationDrawerItem</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">NavigationRail — 側邊導航欄</span> <span class="tag tag-md3">MD3 專屬</span></div>
+  <div class="comp-card-desc">垂直方向的導航欄，常用於桌面端的側邊欄。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：NavigationRail / NavigationRailItem</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">TabControl — 分頁</span></div>
+  <div class="comp-card-desc">分頁切換元件，支援多種樣式。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignTabControl</span>
+    <span class="meta-item">MaterialDesignNavigationRailTabControl</span>
+    <span class="meta-item">MaterialDesignFilledFlatTabControl</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Menu — 選單</span></div>
+  <div class="comp-card-desc">上下文選單或應用程式選單列。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignMenu</span></div>
+</div>
+
+<!-- 4.7 回饋類 -->
+<h3 id="ch4-feedback">4.7 回饋類（Feedback）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ProgressBar — 進度條</span></div>
+  <div class="comp-card-desc">線性進度指示器，支援確定進度和不確定（Loading）兩種模式。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignLinearProgressBar</span>
+    <span class="meta-item">MaterialDesignCircularProgressBar</span>
+    <span class="meta-item">ProgressBarAssist.IsIndeterminate</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Snackbar — 提示通知</span></div>
+  <div class="comp-card-desc">短暫顯示的通知訊息，從畫面底部滑出，可包含操作按鈕。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">自訂控件：SnackbarHost / Snackbar</span>
+    <span class="meta-item">SnackbarHost.MessageQueue</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">DialogHost — 對話框</span></div>
+  <div class="comp-card-desc">模態對話框容器，支援自訂內容、確認/取消操作。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">自訂控件：DialogHost</span>
+    <span class="meta-item">DialogHost.OpenedCommand</span>
+    <span class="meta-item">DialogHost.ClosingCommand</span>
+    <span class="meta-item">DialogHost.OverlayBackground</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Badged — 徽章</span></div>
+  <div class="comp-card-desc">在元素右上角顯示徽章計數（如未讀通知數量）。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">自訂控件：Badged</span>
+    <span class="meta-item">Badged.Badge</span>
+    <span class="meta-item">Badged.BadgePlacementMode</span>
+  </div>
+</div>
+
+<!-- 4.8 選擇器 -->
+<h3 id="ch4-pickers">4.8 選擇器（Pickers）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">DatePicker — 日期選擇器</span></div>
+  <div class="comp-card-desc">日期選取元件，支援 Floating Label 和日曆彈出面板。</div>
+  <div class="comp-card-meta">
+    <span class="meta-item">MaterialDesignOutlinedDatePicker</span>
+    <span class="meta-item">MaterialDesignFilledDatePicker</span>
+    <span class="meta-item">MaterialDesignDatePicker</span>
+    <span class="meta-item">DatePickerAssist.OutlineWidth</span>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">TimePicker — 時間選擇器</span></div>
+  <div class="comp-card-desc">時間選取元件，支援時鐘面板或下拉選取。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：TimePicker</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Calendar — 日曆</span></div>
+  <div class="comp-card-desc">完整日曆面板，可獨立使用或作為 DatePicker 的彈出面板。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignCalendarPortrait</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Clock — 時鐘</span></div>
+  <div class="comp-card-desc">圓形時鐘面板，用於時間選取。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：Clock</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ColorPicker — 色彩選擇器</span></div>
+  <div class="comp-card-desc">色彩選取元件，支援色相環、明度/飽和度滑桿。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：ColorPicker</span></div>
+</div>
+
+<!-- 4.9 佈局類 -->
+<h3 id="ch4-layout">4.9 佈局類（Layout）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">GridSplitter — 格線分隔器</span></div>
+  <div class="comp-card-desc">可拖曳的格線分隔元件，用於調整面板大小。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignGridSplitter</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ScrollViewer / ScrollBar — 捲動</span></div>
+  <div class="comp-card-desc">Material Design 樣式的捲動容器和捲動條。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignScrollViewer</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">ToolBar — 工具列</span></div>
+  <div class="comp-card-desc">工具按鈕的容器列，常放在視窗頂部。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignToolBar</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Separator — 分隔線</span></div>
+  <div class="comp-card-desc">水平或垂直的視覺分隔線。</div>
+  <div class="comp-card-meta"><span class="meta-item">MaterialDesignSeparator</span><span class="meta-item">MaterialDesignLightSeparator</span><span class="meta-item">MaterialDesignDarkSeparator</span></div>
+</div>
+
+<!-- 4.10 特殊元件 -->
+<h3 id="ch4-special">4.10 特殊元件（Special）</h3>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Chip — 標籤晶片</span></div>
+  <div class="comp-card-desc">小型互動標籤，用於篩選、標記、輸入。支援可刪除和可選取模式。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：Chip</span><span class="meta-item">Chip.IsDeletable</span><span class="meta-item">Chip.IconContent</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Flipper — 翻轉器</span></div>
+  <div class="comp-card-desc">包含正面和背面的容器，可翻轉顯示不同內容。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：Flipper</span><span class="meta-item">Flipper.FrontContent</span><span class="meta-item">Flipper.BackContent</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">DrawerHost — 抽屜容器</span></div>
+  <div class="comp-card-desc">從四個方向（上下左右）滑出抽屜面板的容器。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：DrawerHost</span><span class="meta-item">DrawerHost.LeftDrawerContent</span><span class="meta-item">DrawerHost.IsLeftDrawerOpen</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Transitioner — 轉場器</span></div>
+  <div class="comp-card-desc">頁面/內容切換的動畫容器，支援多種轉場效果。</div>
+  <div class="comp-card-meta"><span class="meta-item">自訂控件：Transitioner</span><span class="meta-item">TransitionEffect: SlideInFromLeft / SlideInFromRight / FadeIn / Custom</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Ripple — 水波紋效果</span></div>
+  <div class="comp-card-desc">Material Design 標誌性的點擊水波紋動畫效果。</div>
+  <div class="comp-card-meta"><span class="meta-item">RippleAssist.IsDisabled</span><span class="meta-item">RippleAssist.Feedback</span><span class="meta-item">RippleAssist.ClipToBounds</span></div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">PackIcon — 圖示</span></div>
+  <div class="comp-card-desc">7000+ 個 Material Design 向量圖示，直接在 XAML 中使用。</div>
+  <div class="comp-card-meta"><span class="meta-item">PackIcon.Kind</span><span class="meta-item">PackIcon.Width / Height</span></div>
+  <div class="code-block" style="margin-top:8px;">
+    <span class="code-lang">XAML</span>
+    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;materialDesign:PackIcon Kind="Home" Width="24" Height="24" /&gt;
+&lt;materialDesign:PackIcon Kind="Settings" Width="24" Height="24" /&gt;
+&lt;materialDesign:PackIcon Kind="Search" Width="24" Height="24" /&gt;</code></pre>
+  </div>
+</div>
+
+<div class="comp-card">
+  <div class="comp-card-header"><span class="comp-card-name">Elevation / Shadow — 陰影系統</span></div>
+  <div class="comp-card-desc">Material Design 的 Elevation 系統，提供 0-24 級的陰影深度。</div>
+  <div class="comp-card-meta"><span class="meta-item">ElevationAssist.Elevation: Dp0 ~ Dp24</span></div>
+</div>
+</section>
+
+<!-- ============ CHAPTER 5: 客製化指南 ============ -->
+<section id="ch5">
+<h2>5. 客製化指南</h2>
+
+<h3 id="ch5-levels">5.1 四種客製化層級</h3>
+
+<div class="level-grid">
+  <div class="level-card">
+    <div class="level-card-num">1</div>
+    <div class="level-card-title">BundledTheme</div>
+    <div class="level-card-desc">從預設調色盤選色<br>最快上手，5 分鐘完成</div>
+  </div>
+  <div class="level-card recommended">
+    <div class="level-card-num" style="color:var(--brand-secondary);">2</div>
+    <div class="level-card-title">CustomColorTheme &#11088;</div>
+    <div class="level-card-desc">用任意 Hex 色碼<br><strong>萬潤推薦方案</strong></div>
+  </div>
+  <div class="level-card">
+    <div class="level-card-num">3</div>
+    <div class="level-card-title">PaletteHelper</div>
+    <div class="level-card-desc">Runtime 動態切換<br>適合需要換色場景</div>
+  </div>
+  <div class="level-card">
+    <div class="level-card-num">4</div>
+    <div class="level-card-title">完全自定</div>
+    <div class="level-card-desc">自定色票 + 元件覆寫<br>最大彈性，最多工作量</div>
+  </div>
+</div>
+
+<h4>Level 1: BundledTheme — 預設調色盤選色</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;materialDesign:BundledTheme
+  BaseTheme="Light"
+  PrimaryColor="Teal"
+  SecondaryColor="Amber" /&gt;</code></pre>
+</div>
+<p>可用的 PrimaryColor 值：Red, Pink, Purple, DeepPurple, Indigo, Blue, LightBlue, Cyan, Teal, Green, LightGreen, Lime, Yellow, Amber, Orange, DeepOrange, Brown, Grey, BlueGrey</p>
+
+<h4>Level 2: CustomColorTheme — 萬潤推薦 &#11088;</h4>
+<div class="code-block">
+  <span class="code-lang">XAML — 萬潤品牌色配置</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;materialDesign:CustomColorTheme
+  BaseTheme="Light"
+  PrimaryColor="<span class="brand-primary-text">#016194</span>"
+  SecondaryColor="<span class="brand-secondary-text">#F48001</span>" /&gt;</code></pre>
+</div>
+
+<h4>Level 3: PaletteHelper — Runtime 動態切換</h4>
+<div class="code-block">
+  <span class="code-lang">C#</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>var paletteHelper = new PaletteHelper();
+var theme = paletteHelper.GetTheme();
+
+// 切換品牌色
+theme.SetPrimaryColor((Color)ColorConverter.ConvertFromString("<span class="brand-primary-text">#016194</span>"));
+theme.SetSecondaryColor((Color)ColorConverter.ConvertFromString("<span class="brand-secondary-text">#F48001</span>"));
+
+// 切換 Light / Dark
+theme.SetBaseTheme(BaseTheme.Dark);
+
+paletteHelper.SetTheme(theme);</code></pre>
+</div>
+
+<h4>Level 4: 完全自定</h4>
+<p>包含：自定色票 XAML、覆寫特定元件 ResourceDictionary、自訂 Assist 屬性預設值。詳見 <a href="#ch6-advanced">6.4 進階客製化</a>。</p>
+
+<h3 id="ch5-checklist">5.2 設計師交付清單</h3>
+<div class="card">
+<h4>&#9989; 交付給工程師的項目</h4>
+<ul class="checklist">
+  <li>Primary Color（主色碼）— 如：<code class="brand-primary-text">#016194</code></li>
+  <li>Secondary Color（次色碼）— 如：<code class="brand-secondary-text">#F48001</code></li>
+  <li>BaseTheme 選擇（Light / Dark / 兩者都要）</li>
+  <li>字型選擇（如需替換 Noto，提供字型檔案）</li>
+  <li>圓角偏好（如需調整預設圓角大小）</li>
+  <li>特殊元件覆寫需求（如按鈕高度、卡片陰影等）</li>
+  <li>ColorAdjustment 設定（對比度等級偏好）</li>
+  <li>導航模式選擇（NavigationBar / NavigationDrawer / NavigationRail）</li>
+</ul>
+</div>
+</section>
+
+<!-- ============ CHAPTER 6: 工程師取用 ============ -->
+<section id="ch6">
+<h2>6. 工程師取用指南</h2>
+
+<h3 id="ch6-install">6.1 安裝與設定</h3>
+<div class="card">
+<h4>NuGet 安裝</h4>
+<div class="code-block">
+  <span class="code-lang">Package Manager</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>Install-Package MaterialDesignThemes</code></pre>
+</div>
+<div class="code-block">
+  <span class="code-lang">.NET CLI</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>dotnet add package MaterialDesignThemes</code></pre>
+</div>
+<p style="font-size:12px;color:var(--text-tertiary);"><code>MaterialDesignColors</code> 會作為依賴自動安裝，不需另外安裝。</p>
+</div>
+
+<div class="card">
+<h4>App.xaml 完整配置（萬潤品牌色）</h4>
+<div class="code-block">
+  <span class="code-lang">XAML — 直接複製到你的 App.xaml</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;Application x:Class="YourApp.App"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+  &lt;Application.Resources&gt;
+    &lt;ResourceDictionary&gt;
+      &lt;ResourceDictionary.MergedDictionaries&gt;
+
+        &lt;!-- 1. 萬潤品牌色主題 --&gt;
+        &lt;materialDesign:CustomColorTheme
+          BaseTheme="Light"
+          PrimaryColor="<span class="brand-primary-text">#016194</span>"
+          SecondaryColor="<span class="brand-secondary-text">#F48001</span>"&gt;
+          &lt;materialDesign:CustomColorTheme.ColorAdjustment&gt;
+            &lt;materialDesign:ColorAdjustment
+              DesiredContrastRatio="4.5"
+              Contrast="Medium"
+              Colors="All" /&gt;
+          &lt;/materialDesign:CustomColorTheme.ColorAdjustment&gt;
+        &lt;/materialDesign:CustomColorTheme&gt;
+
+        &lt;!-- 2. MD3 元件樣式 --&gt;
+        &lt;ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" /&gt;
+
+      &lt;/ResourceDictionary.MergedDictionaries&gt;
+    &lt;/ResourceDictionary&gt;
+  &lt;/Application.Resources&gt;
+&lt;/Application&gt;</code></pre>
+</div>
+</div>
+
+<h3 id="ch6-basic">6.2 基本使用範例</h3>
+
+<div class="card">
+<h4>按鈕範例</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;!-- 凸起按鈕（主要操作）--&gt;
+&lt;Button Style="{StaticResource MaterialDesignRaisedButton}"
+        Content="確認" /&gt;
+
+&lt;!-- 外框按鈕（次要操作）--&gt;
+&lt;Button Style="{StaticResource MaterialDesignOutlinedButton}"
+        Content="取消" /&gt;
+
+&lt;!-- 扁平按鈕（最低強調）--&gt;
+&lt;Button Style="{StaticResource MaterialDesignFlatButton}"
+        Content="了解更多" /&gt;
+
+&lt;!-- 浮動操作按鈕 + 圖示 --&gt;
+&lt;Button Style="{StaticResource MaterialDesignFloatingActionButton}"&gt;
+  &lt;materialDesign:PackIcon Kind="Plus" /&gt;
+&lt;/Button&gt;</code></pre>
+</div>
+</div>
+
+<div class="card">
+<h4>輸入框範例</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;!-- Outlined 輸入框 + Floating Label --&gt;
+&lt;TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}"
+         materialDesign:HintAssist.Hint="使用者名稱"
+         materialDesign:HintAssist.IsFloating="True"
+         materialDesign:TextFieldAssist.HasClearButton="True" /&gt;
+
+&lt;!-- Filled 輸入框 + Helper Text --&gt;
+&lt;TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+         materialDesign:HintAssist.Hint="電子郵件"
+         materialDesign:HintAssist.HelperText="請輸入有效的電子郵件地址" /&gt;</code></pre>
+</div>
+</div>
+
+<div class="card">
+<h4>卡片 + 對話框範例</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;!-- Elevated 卡片 --&gt;
+&lt;materialDesign:Card Style="{StaticResource MaterialDesignElevatedCard}"
+                     UniformCornerRadius="12" Padding="16"&gt;
+  &lt;StackPanel&gt;
+    &lt;TextBlock Style="{StaticResource MaterialDesignTitleMediumTextBlock}"
+               Text="卡片標題" /&gt;
+    &lt;TextBlock Style="{StaticResource MaterialDesignBodyMediumTextBlock}"
+               Text="卡片內容描述" Margin="0,8,0,0" /&gt;
+  &lt;/StackPanel&gt;
+&lt;/materialDesign:Card&gt;
+
+&lt;!-- 對話框觸發 --&gt;
+&lt;materialDesign:DialogHost&gt;
+  &lt;Button Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}"
+          Content="開啟對話框" /&gt;
+&lt;/materialDesign:DialogHost&gt;</code></pre>
+</div>
+</div>
+
+<h3 id="ch6-runtime">6.3 主題切換（Runtime）</h3>
+<div class="card">
+<h4>PaletteHelper 完整 API</h4>
+<div class="code-block">
+  <span class="code-lang">C#</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>using MaterialDesignThemes.Wpf;
+using System.Windows.Media;
+
+// 取得 PaletteHelper 實例
+var paletteHelper = new PaletteHelper();
+
+// 取得當前主題
+var theme = paletteHelper.GetTheme();
+
+// === 修改品牌色 ===
+theme.SetPrimaryColor((Color)ColorConverter.ConvertFromString("<span class="brand-primary-text">#016194</span>"));
+theme.SetSecondaryColor((Color)ColorConverter.ConvertFromString("<span class="brand-secondary-text">#F48001</span>"));
+
+// === 切換 Light / Dark ===
+theme.SetBaseTheme(BaseTheme.Light);  // 或 BaseTheme.Dark
+
+// === 套用主題 ===
+paletteHelper.SetTheme(theme);
+
+// === 監聽主題變更 ===
+var themeManager = paletteHelper.GetThemeManager();
+if (themeManager != null)
+{
+    themeManager.ThemeChanged += (s, e) =>
+    {
+        // 主題已變更，更新 UI
+        Debug.WriteLine($"New primary: {e.NewTheme.PrimaryMid.Color}");
+    };
+}</code></pre>
+</div>
+</div>
+
+<h3 id="ch6-advanced">6.4 進階客製化</h3>
+<div class="card">
+<h4>覆寫元件樣式</h4>
+<p>在 <code>MaterialDesign3.Defaults.xaml</code> <strong>之後</strong>加入你的覆寫 ResourceDictionary：</p>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;ResourceDictionary.MergedDictionaries&gt;
+  &lt;materialDesign:CustomColorTheme ... /&gt;
+  &lt;ResourceDictionary Source="...MaterialDesign3.Defaults.xaml" /&gt;
+
+  &lt;!-- 你的覆寫放在最後 --&gt;
+  &lt;ResourceDictionary Source="Themes/AllringOverrides.xaml" /&gt;
+&lt;/ResourceDictionary.MergedDictionaries&gt;</code></pre>
+</div>
+
+<h4>覆寫範例：修改按鈕圓角和高度</h4>
+<div class="code-block">
+  <span class="code-lang">XAML — AllringOverrides.xaml</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+  &lt;!-- 覆寫全域按鈕圓角 --&gt;
+  &lt;Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}"&gt;
+    &lt;Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6" /&gt;
+    &lt;Setter Property="Height" Value="36" /&gt;
+    &lt;Setter Property="Padding" Value="16,0" /&gt;
+  &lt;/Style&gt;
+
+&lt;/ResourceDictionary&gt;</code></pre>
+</div>
+</div>
+
+<h3 id="ch6-snippets">6.5 常見程式碼片段</h3>
+
+<div class="card">
+<h4>導航元件（MD3）</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;!-- NavigationRail（側邊導航欄）--&gt;
+&lt;materialDesign:NavigationRail&gt;
+  &lt;materialDesign:NavigationRailItem Content="首頁"
+    Icon="{materialDesign:PackIconKind Home}" IsSelected="True" /&gt;
+  &lt;materialDesign:NavigationRailItem Content="搜尋"
+    Icon="{materialDesign:PackIconKind Magnify}" /&gt;
+  &lt;materialDesign:NavigationRailItem Content="設定"
+    Icon="{materialDesign:PackIconKind Cog}" /&gt;
+&lt;/materialDesign:NavigationRail&gt;</code></pre>
+</div>
+</div>
+
+<div class="card">
+<h4>DataGrid</h4>
+<div class="code-block">
+  <span class="code-lang">XAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>&lt;DataGrid ItemsSource="{Binding Items}"
+          AutoGenerateColumns="False"
+          materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+          materialDesign:DataGridAssist.ColumnHeaderPadding="8"&gt;
+  &lt;DataGrid.Columns&gt;
+    &lt;DataGridTextColumn Header="名稱" Binding="{Binding Name}" /&gt;
+    &lt;DataGridTextColumn Header="狀態" Binding="{Binding Status}" /&gt;
+    &lt;DataGridTextColumn Header="日期" Binding="{Binding Date}" /&gt;
+  &lt;/DataGrid.Columns&gt;
+&lt;/DataGrid&gt;</code></pre>
+</div>
+</div>
+
+<div class="card">
+<h4>Snackbar 通知</h4>
+<div class="code-block">
+  <span class="code-lang">C#</span>
+  <button class="copy-btn" onclick="copyCode(this)">複製</button>
+<pre><code>// 在 ViewModel 或 Code-behind 中
+var messageQueue = SnackbarHost.MessageQueue;
+messageQueue.Enqueue("操作成功！", "復原", () =>
+{
+    // 復原操作
+});</code></pre>
+</div>
+</div>
+</section>
+
+<!-- ============ CHAPTER 7: 附錄 ============ -->
+<section id="ch7">
+<h2>7. 附錄</h2>
+
+<h3 id="ch7-keys">7.1 Resource Key 索引</h3>
+<div class="card">
+<p>以下是最常用的 Resource Key，可在搜尋框中輸入關鍵字快速查找：</p>
+<table id="resourceKeyTable">
+  <thead><tr><th>Resource Key</th><th>類型</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td><code>MaterialDesignRaisedButton</code></td><td>Style</td><td>凸起按鈕</td></tr>
+    <tr><td><code>MaterialDesignFlatButton</code></td><td>Style</td><td>扁平按鈕</td></tr>
+    <tr><td><code>MaterialDesignOutlinedButton</code></td><td>Style</td><td>外框按鈕</td></tr>
+    <tr><td><code>MaterialDesignFloatingActionButton</code></td><td>Style</td><td>FAB 浮動按鈕</td></tr>
+    <tr><td><code>MaterialDesignOutlinedTextBox</code></td><td>Style</td><td>外框輸入框</td></tr>
+    <tr><td><code>MaterialDesignFilledTextBox</code></td><td>Style</td><td>填滿輸入框</td></tr>
+    <tr><td><code>MaterialDesignOutlinedComboBox</code></td><td>Style</td><td>外框下拉選單</td></tr>
+    <tr><td><code>MaterialDesignElevatedCard</code></td><td>Style</td><td>凸起卡片</td></tr>
+    <tr><td><code>MaterialDesignOutlinedCard</code></td><td>Style</td><td>外框卡片</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Primary</code></td><td>Brush</td><td>主要品牌色</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Secondary</code></td><td>Brush</td><td>次要品牌色</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Background</code></td><td>Brush</td><td>頁面背景</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Body</code></td><td>Brush</td><td>內文文字</td></tr>
+    <tr><td><code>MaterialDesign.Brush.Card.Background</code></td><td>Brush</td><td>卡片背景</td></tr>
+    <tr><td><code>MaterialDesign.Brush.ValidationError</code></td><td>Brush</td><td>驗證錯誤色</td></tr>
+    <tr><td><code>MaterialDesignFont</code></td><td>FontFamily</td><td>主要字型</td></tr>
+    <tr><td><code>MaterialDesignHeadlineMediumTextBlock</code></td><td>Style</td><td>中型標題文字</td></tr>
+    <tr><td><code>MaterialDesignBodyMediumTextBlock</code></td><td>Style</td><td>中型內文文字</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="ch7-faq">7.2 常見問題 FAQ</h3>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    Q: MDIXAML 支援哪些 .NET 版本？
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="accordion-body">
+    支援 .NET Framework 4.6.2+、.NET 8.0（Windows）、.NET 10.0（Windows）。
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    Q: 如何同時支援 Light 和 Dark 模式？
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="accordion-body">
+    使用 <code>PaletteHelper</code> 的 <code>SetBaseTheme()</code> 方法在 Runtime 切換。也可以設定 <code>BaseTheme="Inherit"</code> 讓應用程式跟隨 Windows 系統主題。
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    Q: CustomColorTheme 和 BundledTheme 差在哪？
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="accordion-body">
+    <code>BundledTheme</code> 只能從 19 種預設調色盤選色。<code>CustomColorTheme</code> 接受任意 Hex 色碼，更適合品牌客製化。兩者的主題引擎一樣，只是色彩來源不同。
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    Q: 種子色自動展開的色階會不會不好看？
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="accordion-body">
+    MD3 的 HCT 演算法經過大量測試，展開的色階在絕大多數情況下都是和諧的。如果對特定色階不滿意，可以用 Level 4 客製化方式手動覆寫個別 Brush。
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    Q: 如何在 Figma 中與 MDIXAML 對齊？
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="accordion-body">
+    建議在 Figma 中使用 Material Design 3 的 Design Kit，並建立 Variable 命名對照表（見本手冊 2.3 節）。關鍵是讓 Figma 的 Token 名稱與 XAML 的 Resource Key 可以對應。
+  </div>
+</div>
+
+<!-- CHANGELOG -->
+<h3 id="changelog">7.3 版本記錄（Changelog）</h3>
+<div class="changelog-entry">
+  <span class="changelog-version">v1</span>
+  <span class="changelog-date">2026-04-13</span>
+  <ul class="changelog-list">
+    <li>初版建立</li>
+    <li>色彩系統：萬潤 Primary <code class="brand-primary-text">#016194</code> / Secondary <code class="brand-secondary-text">#F48001</code></li>
+    <li>方案 A：種子色自動展開（CustomColorTheme）</li>
+    <li>以 Material Design 3 為主軸，MD2 差異附註</li>
+    <li>元件庫 70+ 元件完整收錄</li>
+    <li>內建品牌色設定面板（即時連動功能）</li>
+    <li>工程師取用指南含完整 App.xaml 配置</li>
+    <li>程式碼區塊支援一鍵複製</li>
+  </ul>
+</div>
+</section>
+
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================
+     JAVASCRIPT
+     ============================================ -->
+<script>
+// ============================================
+// Brand Color System — 即時連動核心
+// ============================================
+const DEFAULT_PRIMARY = '#016194';
+const DEFAULT_SECONDARY = '#F48001';
+
+function hexToHSL(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255;
+  let g = parseInt(hex.slice(3,5),16)/255;
+  let b = parseInt(hex.slice(5,7),16)/255;
+  let max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max+min)/2;
+  if(max===min) { h=s=0; }
+  else {
+    let d = max-min;
+    s = l>0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max){
+      case r: h=((g-b)/d+(g<b?6:0))/6; break;
+      case g: h=((b-r)/d+2)/6; break;
+      case b: h=((r-g)/d+4)/6; break;
+    }
+  }
+  return {h:h*360,s:s*100,l:l*100};
+}
+
+function HSLToHex(h,s,l) {
+  s/=100; l/=100;
+  let c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+  let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+  r=Math.round((r+m)*255).toString(16).padStart(2,'0');
+  g=Math.round((g+m)*255).toString(16).padStart(2,'0');
+  b=Math.round((b+m)*255).toString(16).padStart(2,'0');
+  return '#'+r+g+b;
+}
+
+function generateVariants(hex) {
+  const hsl = hexToHSL(hex);
+  return {
+    light: HSLToHex(hsl.h, Math.min(hsl.s,40), Math.max(hsl.l,92)),
+    dark: HSLToHex(hsl.h, hsl.s, Math.max(hsl.l-15,15))
+  };
+}
+
+function updateBrandColors(primary, secondary) {
+  const pv = generateVariants(primary);
+  const sv = generateVariants(secondary);
+
+  document.documentElement.style.setProperty('--brand-primary', primary);
+  document.documentElement.style.setProperty('--brand-secondary', secondary);
+  document.documentElement.style.setProperty('--brand-primary-light', pv.light);
+  document.documentElement.style.setProperty('--brand-primary-dark', pv.dark);
+  document.documentElement.style.setProperty('--brand-secondary-light', sv.light);
+  document.documentElement.style.setProperty('--brand-secondary-dark', sv.dark);
+
+  // Update inline swatches
+  document.querySelectorAll('.swatch-primary').forEach(el => el.style.background = primary);
+  document.querySelectorAll('.swatch-secondary').forEach(el => el.style.background = secondary);
+
+  // Update brand color text in code blocks
+  document.querySelectorAll('.brand-primary-text').forEach(el => el.textContent = primary);
+  document.querySelectorAll('.brand-secondary-text').forEach(el => el.textContent = secondary);
+
+  // Sync inputs
+  document.getElementById('primaryColor').value = primary;
+  document.getElementById('primaryHex').value = primary;
+  document.getElementById('secondaryColor').value = secondary;
+  document.getElementById('secondaryHex').value = secondary;
+}
+
+// Color input events
+document.getElementById('primaryColor').addEventListener('input', e => {
+  updateBrandColors(e.target.value, document.getElementById('secondaryColor').value);
+});
+document.getElementById('secondaryColor').addEventListener('input', e => {
+  updateBrandColors(document.getElementById('primaryColor').value, e.target.value);
+});
+document.getElementById('primaryHex').addEventListener('change', e => {
+  if(/^#[0-9A-Fa-f]{6}$/.test(e.target.value))
+    updateBrandColors(e.target.value, document.getElementById('secondaryHex').value);
+});
+document.getElementById('secondaryHex').addEventListener('change', e => {
+  if(/^#[0-9A-Fa-f]{6}$/.test(e.target.value))
+    updateBrandColors(document.getElementById('primaryHex').value, e.target.value);
+});
+
+// Save / Reset
+document.getElementById('btnSave').addEventListener('click', () => {
+  localStorage.setItem('allring-primary', document.getElementById('primaryColor').value);
+  localStorage.setItem('allring-secondary', document.getElementById('secondaryColor').value);
+  showToast('品牌色已儲存！');
+});
+document.getElementById('btnReset').addEventListener('click', () => {
+  updateBrandColors(DEFAULT_PRIMARY, DEFAULT_SECONDARY);
+  localStorage.removeItem('allring-primary');
+  localStorage.removeItem('allring-secondary');
+  showToast('已重設為萬潤預設色');
+});
+
+// Load saved colors
+const savedPrimary = localStorage.getItem('allring-primary');
+const savedSecondary = localStorage.getItem('allring-secondary');
+if (savedPrimary && savedSecondary) {
+  updateBrandColors(savedPrimary, savedSecondary);
+} else {
+  updateBrandColors(DEFAULT_PRIMARY, DEFAULT_SECONDARY);
+}
+
+// ============================================
+// Dark Mode Toggle
+// ============================================
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('allring-theme');
+if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+themeToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    themeToggle.innerHTML = '&#9789;';
+    localStorage.setItem('allring-theme', 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeToggle.innerHTML = '&#9788;';
+    localStorage.setItem('allring-theme', 'dark');
+  }
+});
+if (savedTheme === 'dark') themeToggle.innerHTML = '&#9788;';
+
+// ============================================
+// Sidebar Navigation
+// ============================================
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+// Active nav tracking
+const navItems = document.querySelectorAll('.nav-item');
+const sections = document.querySelectorAll('section, h3[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    if (window.scrollY >= section.offsetTop - 120) current = section.id;
+  });
+  navItems.forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('href') === '#' + current) item.classList.add('active');
+  });
+
+  // Progress bar
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = (scrollTop / docHeight) * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+});
+
+// Close sidebar on mobile nav click
+navItems.forEach(item => {
+  item.addEventListener('click', () => { if(window.innerWidth<=900) sidebar.classList.remove('open'); });
+});
+
+// ============================================
+// Search
+// ============================================
+document.getElementById('searchInput').addEventListener('input', function() {
+  const query = this.value.toLowerCase().trim();
+  const main = document.getElementById('mainContent');
+
+  // Remove old highlights
+  main.querySelectorAll('mark.search-hl').forEach(m => {
+    m.replaceWith(document.createTextNode(m.textContent));
+  });
+
+  if (!query || query.length < 2) return;
+
+  // Simple search: find matching text nodes
+  const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT, null);
+  const matches = [];
+  while (walker.nextNode()) {
+    if (walker.currentNode.textContent.toLowerCase().includes(query)) {
+      matches.push(walker.currentNode);
+    }
+  }
+
+  // Highlight first 20 matches
+  let scrolled = false;
+  matches.slice(0, 20).forEach(node => {
+    const text = node.textContent;
+    const idx = text.toLowerCase().indexOf(query);
+    if (idx === -1) return;
+    const before = document.createTextNode(text.slice(0, idx));
+    const mark = document.createElement('mark');
+    mark.className = 'search-hl';
+    mark.style.cssText = 'background:' + (document.documentElement.getAttribute('data-theme')==='dark' ? 'rgba(244,128,1,0.3)' : '#FCDCB9') + ';padding:1px 2px;border-radius:2px;';
+    mark.textContent = text.slice(idx, idx + query.length);
+    const after = document.createTextNode(text.slice(idx + query.length));
+    const parent = node.parentNode;
+    parent.insertBefore(before, node);
+    parent.insertBefore(mark, node);
+    parent.insertBefore(after, node);
+    parent.removeChild(node);
+    if (!scrolled) { mark.scrollIntoView({behavior:'smooth',block:'center'}); scrolled = true; }
+  });
+});
+
+// ============================================
+// Copy Code
+// ============================================
+function copyCode(btn) {
+  const code = btn.closest('.code-block').querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製', 1500);
+  });
+}
+
+// ============================================
+// Accordion
+// ============================================
+function toggleAccordion(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ============================================
+// Toast
+// ============================================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ============================================
+// Color Swatches Grid
+// ============================================
+const materialColors = [
+  {name:'Red',hex:'#F44336'},{name:'Pink',hex:'#E91E63'},{name:'Purple',hex:'#9C27B0'},
+  {name:'Deep Purple',hex:'#673AB7'},{name:'Indigo',hex:'#3F51B5'},{name:'Blue',hex:'#2196F3'},
+  {name:'Light Blue',hex:'#03A9F4'},{name:'Cyan',hex:'#00BCD4'},{name:'Teal',hex:'#009688'},
+  {name:'Green',hex:'#4CAF50'},{name:'Light Green',hex:'#8BC34A'},{name:'Lime',hex:'#CDDC39'},
+  {name:'Yellow',hex:'#FFEB3B'},{name:'Amber',hex:'#FFC107'},{name:'Orange',hex:'#FF9800'},
+  {name:'Deep Orange',hex:'#FF5722'},{name:'Brown',hex:'#795548'},{name:'Grey',hex:'#9E9E9E'},
+  {name:'Blue Grey',hex:'#607D8B'}
+];
+const grid = document.getElementById('swatchGrid');
+materialColors.forEach(c => {
+  const lum = hexToHSL(c.hex).l;
+  const fg = lum > 55 ? '#000' : '#fff';
+  grid.innerHTML += `<div class="color-swatch" onclick="navigator.clipboard.writeText('${c.hex}');showToast('已複製 ${c.hex}')">
+    <div class="color-swatch-block" style="background:${c.hex}"><span style="color:${fg}">${c.hex}</span></div>
+    <div class="color-swatch-info"><div class="color-swatch-name">${c.name}</div><div class="color-swatch-hex">${c.hex}</div></div>
+  </div>`;
+});
+</script>
+
+</body>
+</html>
